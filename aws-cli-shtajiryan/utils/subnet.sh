@@ -1,6 +1,6 @@
 #!/bin/bash
 
-create_subnet ()
+create_public_subnet ()
 {
     SUBNET_ID=$(aws ec2 create-subnet \
 	    --vpc-id $VPC_ID \
