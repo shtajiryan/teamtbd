@@ -35,9 +35,25 @@ create_sg_in_vpc ()
     SG_ID=$(aws ec2 create-security-group \
         --group-name acatest \
         --description "aca test security group" \
-        --vpc-id $SUBNET_VPC_ID \
+        --vpc-id $VPC_ID \
         --query 'GroupId' \
         --output text)
+
+    aws ec2 create-tags \
+        --resources $SG_ID \
+        --tags Key=DeleteMe,Value=Yes
+
+    echo "$SG_ID created and tagged"
+
+    aws ec2 authorize-security-group-ingress \
+        --group-id $SG_ID \
+        --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
+        IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
+        --output text >> /dev/null
+
+
+    echo "Port $left opened for all on $SG_ID"
+    echo "Port $right opened for all on $SG_ID"
 }
 
 create_instance ()

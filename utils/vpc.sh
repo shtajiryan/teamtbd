@@ -14,6 +14,10 @@ create_vpc ()
             --resources $VPC_ID \
             --tags Key=DeleteMe,Value=Yes
 
+        aws ec2 create-tags \
+            --resources $VPC_ID \
+            --tags Key=Name,Value=$VPC_NAME
+
         echo "$VPC_ID created and tagged"
     fi
 }
