@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source ./utils/*.sh
+source ./utils/vpc.sh
+source ./utils/instance.sh
 
 case ${1} in
 

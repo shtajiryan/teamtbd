@@ -3,8 +3,8 @@
 create_sg ()
 {
     SG_ID=$(aws ec2 create-security-group \
-        --group-name acatest \
-        --description "aca test security group" \
+	    --group-name acatest \
+	    --description "aca test security group" \
         --vpc-id $VPC_ID \
         --query 'GroupId' \
         --output text)
@@ -20,35 +20,38 @@ create_sg ()
 
         aws ec2 authorize-security-group-ingress \
             --group-id $SG_ID \
-            --protocol tcp \
-            --port 22 \
-            --cidr 0.0.0.0/0 \
+            --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
+            IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
             --output text >> /dev/null
 
-        aws ec2 authorize-security-group-ingress \
-            --group-id $SG_ID \
-            --protocol tcp \
-            --port 80 \
-            --cidr 0.0.0.0/0 \
-            --output text >> /dev/null
 
-        echo "SSH allowed for $SG_ID"
-        echo "Port 80 opened for all on $SG_ID"
+        echo "Port $left opened for all on $SG_ID"
+        echo "Port $right opened for all on $SG_ID"
     fi
+}
+
+create_sg_in_vpc ()
+{
+    SG_ID=$(aws ec2 create-security-group \
+        --group-name acatest \
+        --description "aca test security group" \
+        --vpc-id $SUBNET_VPC_ID \
+        --query 'GroupId' \
+        --output text)
 }
 
 create_instance ()
 {
     INSTANCE_ID=$(aws ec2 run-instances \
-            --image-id ami-007855ac798b5175e \
-            --instance-type t2.micro \
-            --key-name $KEY_PAIR \
-            --monitoring "Enabled=false" \
-            --security-group-ids $SG_ID \
-            --subnet-id $SUBNET_ID \
-            --private-ip-address 10.0.1.10 \
-            --query 'Instances[0].InstanceId' \
-            --output text)
+        --image-id ami-007855ac798b5175e \
+        --instance-type t2.micro \
+        --key-name $KEY_PAIR \
+        --monitoring "Enabled=false" \
+        --security-group-ids $SG_ID \
+        --subnet-id $SUBNET_ID \
+        --private-ip-address 10.0.1.10 \
+        --query 'Instances[0].InstanceId' \
+        --output text)
     if [ -z "$INSTANCE_ID" ]; then
         echo "Instance ID is empty, no instance created" && return 1
     else
@@ -62,6 +65,15 @@ create_instance ()
             --instance-ids $INSTANCE_ID \
             --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
             --output text)
+}
+
+describe_sg_vpc ()
+{
+    SG_VPC_ID=$(aws ec2 describe-security-groups \
+        --group-ids $SG_ID \
+        --filters "Name=tag:DeleteMe,Values=Yes" \
+        --query "SecurityGroups[*].VpcId" \
+        --output text)
 }
 
 delete_instance ()
