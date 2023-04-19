@@ -31,7 +31,7 @@ create_private_subnet()
 
 describe_subnet_vpc()
 {
-	SUBNET_VPC_ID=$(aws ec2 describe-subnets --query 'Subnets[*].VpcId' --filters "Name=tag:DeleteMe,Values=Yes" --output text)
+	SUBNET_VPC_ID=$(aws ec2 describe-subnets --query 'Subnets[*].VpcId' --filters "Name=tag:tbd,Values=True" --output text)
 }
 
 delete_subnet ()
