@@ -59,7 +59,7 @@ create_sg_in_vpc ()
 create_instance ()
 {
     INSTANCE_ID=$(aws ec2 run-instances \
-        --image-id ami-007855ac798b5175e \
+        --image-id $INSTANCE_IMAGE_ID \
         --instance-type t2.micro \
         --key-name $KEY_PAIR \
         --monitoring "Enabled=false" \
