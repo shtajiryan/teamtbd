@@ -35,7 +35,7 @@ create_sg_in_vpc ()
     SG_ID=$(aws ec2 create-security-group \
         --group-name acatest \
         --description "aca test security group" \
-        --vpc-id $VPC_ID \
+        --vpc-id $SUBNET_VPC_ID \
         --query 'GroupId' \
         --output text)
 
@@ -81,6 +81,14 @@ create_instance ()
             --instance-ids $INSTANCE_ID \
             --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
             --output text)
+}
+
+describe_sg ()
+{
+    SG_ID=$(aws ec2 describe-security-groups \
+        --filters "Name=tag:DeleteMe,Values=Yes" \
+        --query "SecurityGroups[*].GroupId" \
+        --output text)
 }
 
 describe_sg_vpc ()

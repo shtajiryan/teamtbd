@@ -18,10 +18,12 @@ VPC_ID_PATTERN="vpc-[a-z0-9]*"
 
 if  [[ $VPC_ARG == $VPC_ID_PATTERN ]]; then
     VPC_ID=$VPC_ARG
-    echo "$VPC_ID"
+    echo "$VPC_ID is an ID, using it to match SG, Subnet"
 else
     VPC_NAME=$VPC_ARG
-    echo "$VPC_NAME"
+    echo "VPC argument is a name, creating with name tags $VPC_NAME"
+    create_vpc
+    tag_vpc_by_name
 fi
 
 if [[ $SUBNET_ARG == $SUBNET_ID_PATTERN ]]; then
@@ -29,32 +31,29 @@ if [[ $SUBNET_ARG == $SUBNET_ID_PATTERN ]]; then
     if [[ $SG_ARG == $SG_ID_PATTERN ]]; then
         echo "Security Group argument is an ID, checking for an existing VPC"
         
-        describe_vpc
-        echo "VPC exists with ID $VPC_ID"
-        if [ -z $VPC_ID ]; then
-            echo "No VPC exists for $SUBNET_ARG, exiting" && exit
-        fi
-        describe_subnet_vpc
-        echo "Subnet is connected to $SUBNET_VPC_ID"
-        
         describe_sg_vpc
-        echo "$SG_VPC_ID $VPC_ID $SUBNET_VPC_ID"
-        echo "Secirity Group is connected to $SG_VPC_ID"
-        
-        if [ "$VPC_ID" == "$SUBNET_VPC_ID" ] && [ "$VPC_ID" == "$SG_VPC_ID" ]; then
-            echo "$SUBNET_VPC_ID is a part of $VPC_ID"
+        if [[ $SG_VPC_ID == $VPC_ID ]]; then
+            echo "$SG_ARG is connected to $SG_VPC_ID"
         else
-            echo "$SUBNET_VPC_ID is not a part of $VPC_ID" && exit
+            echo "$SG_ARG is not connected to $VPC_ID, exiting" && exit
         fi
-    elif [[ $SG_ARG =~ $SG_PORT_PATTERN ]]; then
 
-        create_vpc
+        describe_subnet_vpc
+        if [[ $SUBNET_VPC_ID == $VPC_ID ]]; then
+            echo "$SUBNET_ARG is connected to $SUBNET_VPC_ID"
+        else
+            echo "$SUBNET_ARG is not a part of $VPC_ID, exiting" && exit
+        fi
+
+    elif [[ $SG_ARG =~ $SG_PORT_PATTERN ]]; then
+        echo "Security Group argument is a port, fetching VPC ID from Subnet"
+        describe_vpc
         parse_ports
-        describe_sg_vpc
-        if [ -n $SUBNET_VPC_ID ]; then
-            create_sg_in_vpc
+        describe_subnet_vpc
+        if [ -z $SUBNET_VPC_ID ]; then
+            echo "No VPC available for $SUBNET_ARG, exiting" && exit
         else 
-            echo "No VPC available, exiting" && exit
+            create_sg_in_vpc
         fi
     else
         "Unexpected Security Group argument, exiting" && exit
