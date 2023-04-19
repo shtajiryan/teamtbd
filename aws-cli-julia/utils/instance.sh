@@ -9,7 +9,7 @@ create_sg()
         else
             echo "Security group created!!"
     fi
-    aws ec2 create-tags --resources "$SG_ID" --tags Key=DeleteMe,Value=Yes
+    aws ec2 create-tags --resources "$SG_ID" --tags Key=tbd,Value=True
     aws ec2 authorize-security-group-ingress --group-id "${SG_ID}" --protocol tcp --port 22 --cidr 0.0.0.0/0
     aws ec2 authorize-security-group-ingress --group-id "${SG_ID}" --protocol tcp --port 80 --cidr 0.0.0.0/0
 	echo "Rules created"
@@ -22,7 +22,7 @@ create_instance ()
             echo "Instance ID is empty, no instance created"
 	    exit 1
     else
-	    aws ec2 create-tags --resources $INSTANCE_ID --tags Key=DeleteMe,Value=Yes 
+	    aws ec2 create-tags --resources $INSTANCE_ID --tags Key=tbd,Value=True 
 	    echo "$INSTANCE_ID created and tagged"
     fi
 
@@ -46,7 +46,7 @@ delete_instance ()
 
 delete_sg ()
 {
-	SG_ID=$(aws ec2 describe-security-groups --filters "Name=tag:DeleteMe,Values=Yes" --query 'SecurityGroups[*].GroupId' --output text)
+	SG_ID=$(aws ec2 describe-security-groups --filters "Name=tag:tbd,Values=True" --query 'SecurityGroups[*].GroupId' --output text)
 	aws ec2 delete-security-group --group-id $SG_ID
 }
 

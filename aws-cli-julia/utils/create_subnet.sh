@@ -7,7 +7,7 @@ create_public_subnet()
         echo "Error creating subnet!"
         exit 1
     fi
-    aws ec2 create-tags --resources "$SUBNET_ID" --tags Key=DeleteMe,Value=Yes
+    aws ec2 create-tags --resources "$SUBNET_ID" --tags Key=tbd,Value=True
     echo "$SUBNET_ID created and tagged"
     aws ec2 modify-subnet-attribute --subnet-id "${SUBNET_ID}" --map-public-ip-on-launch
 	if [ "$?" -ne 0 ]; then
@@ -25,12 +25,17 @@ create_private_subnet()
         echo "Error creating subnet!"
         exit 1
     fi
-    aws ec2 create-tags --resources "$SUBNET_ID" --tags Key=DeleteMe,Value=Yes
+    aws ec2 create-tags --resources "$SUBNET_ID" --tags Key=tbd,Value=True
     	echo "$SUBNET_ID created and tagged"
+}
+
+describe_subnet_vpc()
+{
+	SUBNET_VPC_ID=$(aws ec2 describe-subnets --query 'Subnets[*].VpcId' --filters "Name=tag:DeleteMe,Values=Yes" --output text)
 }
 
 delete_subnet ()
 {
-	SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=tag:DeleteMe,Values=Yes" --query 'Subnets[*].SubnetId' --output text)
+	SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=tag:tbd,Values=True" --query 'Subnets[*].SubnetId' --output text)
 	aws ec2 delete-subnet --subnet-id $SUBNET_ID
 }
