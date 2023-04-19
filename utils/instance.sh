@@ -123,6 +123,8 @@ delete_instance ()
 
     echo "$INSTANCE_ID terminated"
     fi
+
+    #aws ec2 wait instance-terminated --instance-ids "$i"
 }
 
 delete_sg ()
