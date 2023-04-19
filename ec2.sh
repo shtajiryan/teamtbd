@@ -14,7 +14,7 @@ KEY_PAIR="$5"
 INSTANCE_IMAGE_ID_PATTERN="ami-[a-z0-9]*"
 SUBNET_ID_PATTERN="subnet-[a-z0-9]*"
 SG_ID_PATTERN="sg-[a-z0-9]*"
-SG_PORT_PATTERN="[0-9]+:[0-9]+"
+SG_PORT_PATTERN="[0-9]+(:[0-9]+)*$"
 VPC_ID_PATTERN="vpc-[a-z0-9]*"
 
 if  [[ $VPC_ARG == $VPC_ID_PATTERN ]]; then

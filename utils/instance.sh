@@ -18,15 +18,34 @@ create_sg ()
 
         echo "$SG_ID created and tagged"
 
-        aws ec2 authorize-security-group-ingress \
-            --group-id $SG_ID \
-            --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-            IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-            --output text >> /dev/null
+source portparse.sh
+parse_ports
+
+echo "SG_ARG: $SG_ARG"
+echo "Parts: ${parts[@]}"
+
+for ((i=0; i<${#parts[@]}; i++));
+do
+    PART_NAME="part$(($i+1))"
+    aws ec2 authorize-security-group-ingress \
+        --group-id $SG_ID \
+        --protocol tcp \
+        --port "${!PART_NAME}" \
+        --cidr 0.0.0.0/0 \
+        --output text >> /dev/null
+done
 
 
-        echo "Port $left opened for all on $SG_ID"
-        echo "Port $right opened for all on $SG_ID"
+        
+
+    # for parts in "${parts[@]}"
+    #     do aws ec2 authorize-security-group-ingress \
+    #         --group-id $SG_ID \
+    #         --protocol tcp \
+    #         --port "$PART_NAME" \
+    #         --cidr 0.0.0.0/0 \
+    #         --output text >> /dev/null
+    #     done
     fi
 }
 
