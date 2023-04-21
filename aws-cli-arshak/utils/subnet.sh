@@ -5,6 +5,7 @@ function createSubnet() {
     subNetCidrBlock="10.0.1.0/24"
     zone=$2
     vpcId=$3
+    flag=$4
     subnetId=0
     #create Subnet
     subnet_response=$(aws ec2 create-subnet \
@@ -24,11 +25,18 @@ function createSubnet() {
     --tags Key=tbd,Value="true"
 
     #enable public ip on subnet
-    modify_response=$(aws ec2 modify-subnet-attribute \
-    --subnet-id "$subnetId" \
-    --map-public-ip-on-launch)
-    if [ "${subnetId}" == 0 ]; then
-        message="create Subnet Error"
+    if [[ $flag=="public" ]];
+    then
+        modify_response=$(
+            aws ec2 modify-subnet-attribute \
+            --subnet-id "$subnetId" \
+            --map-public-ip-on-launch
+        )
+    else
+        modify_response=$(
+            aws ec2 modify-subnet-attribute \
+            --subnet-id "$subnetId"
+        )
     fi
 }
 
@@ -52,4 +60,24 @@ function getVpcInSubnet() {
         2>&1
     )
     echo $subVpcId
+}
+
+function describeSubnet() {
+    TAG_KEY=$1
+    TAG_VALUE=$2
+    sbIds=$(
+        aws ec2 describe-subnets \
+        --filters "Name=tag:${TAG_KEY},Values=${TAG_VALUE}" \
+        --query 'Subnets[].SubnetId' \
+        --output text \
+        2>&1
+    )
+}
+
+function deleteSubnet() {
+    ids=$1
+    for id in $ids;
+    do
+        aws ec2 delete-subnet --subnet-id "$id"
+    done
 }

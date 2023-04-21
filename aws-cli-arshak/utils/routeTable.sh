@@ -37,3 +37,29 @@ function createRouteTable() {
         --route-table-id "$routeTableId"
     )
 }
+
+function describeRouteTable() {
+    TAG_KEY=$1
+    TAG_VALUE=$2
+    rtIds=$(
+        aws ec2 describe-route-tables \
+        --filters "Name=tag:${TAG_KEY},Values=${TAG_VALUE}" \
+        --query "RouteTables[].RouteTableId" \
+        --output text
+    )
+}
+
+function deleteRouteTable() {
+    ids=$1
+    for id in $ids;
+    do
+        route_table_response=$(aws ec2 describe-route-tables \
+            --route-table-ids $id \
+            --output json \
+        )
+        routeTableAssocId=$(echo -e "$route_table_response" |  /usr/bin/jq '.RouteTables[0].Associations[0].RouteTableAssociationId' | tr -d '"')
+
+        aws ec2 disassociate-route-table --association-id $routeTableAssocId
+        aws ec2 delete-route-table --route-table-id "$id"
+    done
+}
