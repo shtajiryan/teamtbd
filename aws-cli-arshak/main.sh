@@ -4,11 +4,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)/utils"
 
 keyName="virginia"
 for file in $SCRIPT_DIR/*.sh; do
-  source "$file"
+    source "$file"
 done
 # source "$SCRIPT_DIR/*.sh"
 name=$(echo -e "$1" |  /usr/bin/jq '.name' | tr -d '"')
-echo $name
+
 if [[ -z $name ]]; then
     name="New_Instance"
 fi
@@ -32,7 +32,7 @@ function runForCreateInstance() {
         if [[ $sub =~ ^(subnet-[a-f0-9]{17})$ ]];
         then
             checkSubnetById "$sub"
-            if [[ $sg =~ ^(sg-[a-f0-9]{17})$ ]];
+            if [[ $subnetId && $sg =~ ^(sg-[a-f0-9]{17})$ ]];
             then
                 checkSGById "$sg"
                 if [[ $groupId ]];
@@ -48,7 +48,7 @@ function runForCreateInstance() {
                 else
                     return
                 fi
-            elif [[ $sg =~ ^(80|22|443)$ ]];
+            elif [[ $subnetId && $sg =~ ^([0-9]{2,5}|([0-9]{2,5}(\ [0-9]{2,5}){1,}))$ ]]; #change multiple
             then
                 getVpcInSubnet "$subnetId"
                 echo "Create Security Group"
@@ -67,15 +67,15 @@ function runForCreateInstance() {
                     if [[ $sub == "priv" ]];
                     then
                         echo "Create Private Subnet"
-                        createSubnet "$name" "$privAvailabilityZone" "$vpcId"
+                        createSubnet "$name" "$privAvailabilityZone" "$vpcId" "private"
                     else
                         echo "Create Public Subnet"
-                        createSubnet "$name" "$pubAvailabilityZone" "$vpcId"
+                        createSubnet "$name" "$pubAvailabilityZone" "$vpcId" "public"
                     fi
                 else
                     return
                 fi
-            elif [[ $sg =~ ^(80|22|443)$ ]];
+            elif [[ $sg =~ ^([0-9]{2,5}|([0-9]{2,5}(\ [0-9]{2,5}){1,}))$ ]];
             then
                 echo "create VPC, Subnet and SecurityGroup."
                 createVpc "$name" "$vpcCidrBlock"

@@ -44,3 +44,26 @@ function createGatewayAndAttachVpc() {
     #attach gateway to vpc
     attachVpc "$gatewayId" "$vpcId"
 }
+
+function describeIGW() {
+    TAG_KEY=$1
+    TAG_VALUE=$2
+    igwIds=$( aws ec2 describe-internet-gateways \
+        --filters "Name=tag:${TAG_KEY},Values=${TAG_VALUE}" \
+        --query 'InternetGateways[].InternetGatewayId' \
+        --output text
+    )
+}
+
+function deleteIGW() {
+    ids=$1
+    for id in $ids;
+    do
+        getVpcId_IGWById "$id"
+        aws ec2 detach-internet-gateway \
+            --internet-gateway-id $id \
+            --vpc-id $igwVpcId
+
+        aws ec2 delete-internet-gateway --internet-gateway-id "$id"
+    done
+}

@@ -4,7 +4,7 @@
 function createSecurityGroup() {
     scg_name="$1 Security Group"
     portCidrBlock="0.0.0.0/0"
-    port=$2
+    ports=$2
     vpcId=$3
     groupId=0
     security_response=$(aws ec2 create-security-group \
@@ -24,11 +24,17 @@ function createSecurityGroup() {
     --tags Key=tbd,Value="true"
     #enable port 22
 
-    security_response2=$(aws ec2 authorize-security-group-ingress \
-        --group-id "$groupId" \
-        --protocol tcp --port "$port" \
-        --cidr "$portCidrBlock"
-    )
+    for i in $ports;
+    do
+        if [[ $i =~ ^([0-9]{2,5})$ ]];
+        then
+            security_response2=$(aws ec2 authorize-security-group-ingress \
+                --group-id "$groupId" \
+                --protocol tcp --port "$i" \
+                --cidr "$portCidrBlock"
+            )
+        fi
+    done
 }
 
 function checkSGById() {
@@ -51,4 +57,23 @@ function getVpcIdBySG_Id() {
         --output text \
         2>&1
     )
+}
+
+function describeSecurityGroup() {
+    TAG_KEY=$1
+    TAG_VALUE=$2
+    sgId=$(
+        aws ec2 describe-security-groups \
+        --filters "Name=tag:${TAG_KEY},Values=${TAG_VALUE}" \
+        --query "SecurityGroups[].GroupId" \
+        --output text
+    )
+}
+
+function deleteSecurityGroup() {
+    ids=$1
+    for id in $ids;
+    do
+        aws ec2 delete-security-group --group-id $id
+    done
 }

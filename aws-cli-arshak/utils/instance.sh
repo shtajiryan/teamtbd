@@ -16,3 +16,22 @@ function createInstance() {
         --output json \
     )
 }
+
+function describeInstance() {
+    TAG_KEY=$1
+    TAG_VALUE=$2
+    instanceIds=$(
+        aws ec2 describe-instances \
+        --filters "Name=tag:${TAG_KEY},Values=${TAG_VALUE}" \
+        --query "Reservations[*].Instances[*].InstanceId" \
+        --output text)
+}
+
+function deleteInstance() {
+    ids=$1
+    for id in $ids;
+    do
+        aws ec2 terminate-instances --instance-ids "$id"
+        aws ec2 wait instance-terminated --instance-ids "$id"
+    done
+}
