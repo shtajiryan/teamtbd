@@ -18,11 +18,20 @@ create_sg ()
 
         echo "$SG_ID created and tagged"
 
-        aws ec2 authorize-security-group-ingress \
-            --group-id $SG_ID \
-            --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-            IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-            --output text >> /dev/null
+        # aws ec2 authorize-security-group-ingress \
+        #     --group-id $SG_ID \
+        #     --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
+        #     IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
+        #     --output text >> /dev/null
+
+        for port in "${port[@]}"
+        do
+            aws ec2 authorize-security-group-ingress \
+                --group-id $SG_ID \
+                --protocol tcp \
+                --port $port \
+                --cidr 0.0.0.0./0
+        done
 
 
         echo "Port $left opened for all on $SG_ID"
