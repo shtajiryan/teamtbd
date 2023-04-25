@@ -17,25 +17,6 @@ create_sg ()
             --tags Key=DeleteMe,Value=Yes
 
         echo "$SG_ID created and tagged"
-
-        # aws ec2 authorize-security-group-ingress \
-        #     --group-id $SG_ID \
-        #     --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-        #     IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-        #     --output text >> /dev/null
-
-        for port in "${port[@]}"
-        do
-            aws ec2 authorize-security-group-ingress \
-                --group-id $SG_ID \
-                --protocol tcp \
-                --port $port \
-                --cidr 0.0.0.0./0
-        done
-
-
-        echo "Port $left opened for all on $SG_ID"
-        echo "Port $right opened for all on $SG_ID"
     fi
 }
 
@@ -54,15 +35,19 @@ create_sg_in_vpc ()
 
     echo "$SG_ID created and tagged"
 
-    aws ec2 authorize-security-group-ingress \
-        --group-id $SG_ID \
-        --ip-permissions IpProtocol=tcp,FromPort=$left,ToPort=$left,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-        IpProtocol=tcp,FromPort=$right,ToPort=$right,IpRanges='[{CidrIp=0.0.0.0/0}]' \
-        --output text >> /dev/null
-
-
-    echo "Port $left opened for all on $SG_ID"
-    echo "Port $right opened for all on $SG_ID"
+    IFS=":" read -ra PortsArray <<< "$SG_ARG"
+    total_ports=${#PortsArray[@]}
+    echo "$total_ports"
+    for i in $(seq 0 $(($total_ports - 1))); do
+        port=${PortsArray[$i]}
+        aws ec2 authorize-security-group-ingress \
+            --group-id "$SG_ID" \
+            --protocol tcp \
+            --port $port \
+            --cidr 0.0.0.0/0 \
+            --output text >> /dev/null
+        echo "Port $port opened for all" 
+    done
 }
 
 create_instance ()
