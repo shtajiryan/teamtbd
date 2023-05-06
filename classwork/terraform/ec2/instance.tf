@@ -1,7 +1,7 @@
 
 variable "private_key_path" {
   type    = string
-  default = "./../../../../pem/virginia.pem"
+  default = "~/.ssh/*.pem"
 }
 variable "instance_type" {
   type    = string
